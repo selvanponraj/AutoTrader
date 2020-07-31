@@ -7,10 +7,6 @@ import datetime
 
 
 class St(bt.Strategy):
-    IBUS_START=(13,30)
-    IBUS_START = (8,1)
-    IBGBP_START = (7, 00)
-    IBGBP_START = (15, 1)
 
     def __init__(self):
         self.st_24 = bt.indicators.StochasticFast(self.data, period=24, period_dfast=1)
@@ -24,7 +20,7 @@ class St(bt.Strategy):
         txt = []
         txt.append("{}".format(self.data._name))
         txt.append("{}".format(len(self)))
-        txt.append("{}".format(self.data.datetime.date(0)))
+        txt.append("{}".format(self.data.datetime.datetime(0)))
         txt.append("{:.2f}".format(self.data.open[0]))
         txt.append("{:.2f}".format(self.data.high[0]))
         txt.append("{:.2f}".format(self.data.low[0]))
@@ -170,21 +166,24 @@ def run():
 
     stockkwargs = dict(
         timeframe=bt.TimeFrame.Minutes,
-        # tz='EST5EDT',
+        tz='EST5EDT',
         rtbar=False,  # use RealTime 5 seconds bars
         historical=True,  # only historical download
         qcheck=0.5,  # timeout in seconds (float) to check for events
         fromdate=datetime.datetime(2020, 6, 1),  # get data from..
-        todate=datetime.datetime.now(datetime.timezone.utc),  # get data from..
+        todate=datetime.datetime(2020, 7, 29),  # get data from..
         latethrough=False,  # let late samples through
         tradename=None,  # use a different asset as order target,
-        # sessionend = datetime.datetime(20, 00)
+        useRTH=True,
+        sessionstart=datetime.time(9, 30, 00),
+        sessionend=datetime.time(16, 00, 00)
     )
     # data0 = store.getdata(dataname="IBUS500-CFD-SMART", **stockkwargs)
     #
     data0 = store.getdata(dataname='ES-202009-GLOBEX',**stockkwargs)
+    data0.addfilter(bt.filters.SessionFilter)
     #
-    cerebro.resampledata(data0, timeframe=bt.TimeFrame.Days, compression=1)
+    cerebro.resampledata(data0, timeframe=bt.TimeFrame.Minutes, compression=15)
 
     # data = bt.feeds.YahooFinanceData(dataname='^NSEI',  fromdate=datetime.datetime(2019, 1, 1),
     #                                  todate=datetime.datetime(2020, 1, 31))
