@@ -16,6 +16,8 @@ class St(bt.Strategy):
         self.smart_stop = 0
         self.slippage = 30
 
+        self.order = None
+
     def logdata(self):
         txt = []
         txt.append("{}".format(self.data._name))
@@ -37,6 +39,69 @@ class St(bt.Strategy):
         txt.append("{:.2f}".format(self.data.low[-1]))
         txt.append("{:.2f}".format(self.data.close[-1]))
         print(", ".join(txt))
+
+    def notify_order(self, order):
+        print('IAM INSIDE')
+        date = self.data.datetime.datetime().date()
+
+        if order.status == order.Accepted:
+            print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
+            print('Order Accepted')
+            print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
+                date,
+                order.status,
+                order.ref,
+                order.size,
+                'NA' if not order.price else round(order.price, 5)
+            ))
+
+        if order.status == order.Completed:
+            print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
+            print('Order Completed')
+            print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
+                date,
+                order.status,
+                order.ref,
+                order.size,
+                'NA' if not order.price else round(order.price, 5)
+            ))
+            print('Created: {} Price: {} Size: {}'.format(bt.num2date(order.created.dt), order.created.price,
+                                                          order.created.size))
+            print('-' * 80)
+
+        if order.status == order.Canceled:
+            print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
+            print('Order Canceled')
+            print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
+                date,
+                order.status,
+                order.ref,
+                order.size,
+                'NA' if not order.price else round(order.price, 5)
+            ))
+
+        if order.status == order.Rejected:
+            print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
+            print('WARNING! Order Rejected')
+            print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
+                date,
+                order.status,
+                order.ref,
+                order.size,
+                'NA' if not order.price else round(order.price, 5)
+            ))
+            print('-' * 80)
+
+    def notify_trade(self, trade):
+        date = self.data.datetime.datetime()
+        if trade.isclosed:
+            print('-' * 32, ' NOTIFY TRADE ', '-' * 32)
+            print('{}, Close Price: {}, Profit, Gross {}, Net {}'.format(
+                date,
+                trade.price,
+                round(trade.pnl, 2),
+                round(trade.pnlcomm, 2)))
+            print('-' * 80)
 
     def next(self):
         self.logdata()
@@ -78,11 +143,28 @@ class St(bt.Strategy):
             self.smart_stop = round(self.data.low[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
 
             self.slippage = round((self.sip * 30) / 12000)
+
             print('P1 -Setup1 - Buy: T-DAYOPEN {} > SIP: {}~{}, STOP: {}'.format(self.data.open[0],self.sip,self.sip+self.slippage, self.smart_stop))
+            if self.data.open[0] > self.sip:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.sip+self.slippage,
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
 
             print('P1 - Setup2 - Sell: T-DAYOPEN {} < SIP: {}~{}, STOP: {}'.format(self.data.open[0],self.sip,self.sip-self.slippage,
                                                                         self.sip+self.slippage ))
-            print('P1 - Setup3 Only If Setup2 Stopped - Buy: SIP: {}, STOP: {}'.format(self.sip+self.slippage,self.smart_stop))
+            if self.data.open[0] < self.sip:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.sip - self.slippage,
+                    stopprice=self.sip+self.slippage,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+            print('*** Manual P1 - Setup3 Only If Setup2 Stopped - Buy: SIP: {}, STOP: {}'.format(self.sip+self.slippage,self.smart_stop))
         # PATTERN2
         if self.my_signal_24_P2 or self.my_signal_30_P2:
             print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
@@ -93,15 +175,40 @@ class St(bt.Strategy):
             self.smart_stop = round((self.data.high[-1] + self.data.low[-1]) / 2,2)
             print('P2 - Setup1 - Sell: T-DAYOPEN {} < LOW {}: SIP: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],self.data.open[0],
                                                                                                      self.data.close[-1]-self.slippage,self.smart_stop))
+            if self.data.open[0] < self.data.low[-1]:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
             sip_sell = round((self.data.close[-1] + self.data.high[-1]) / 2,2)
             sip_buy = round((self.data.close[-1] + self.data.low[-1]) / 2,2)
 
             self.slippage = round((self.data.high[-1] * 40) / 12000)
             p2_slip = round((self.data.close[-1] * 10) / 12000)
             print('P2 - Setup2 - Sell: T-DAYOPEN {} > LOW {}: SIP: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],sip_sell,sip_sell-p2_slip,self.data.high[-1]+self.slippage))
+            if self.data.open[0] > self.data.low[-1]:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=sip_sell,
+                    stopprice=self.data.high[-1]+self.slippage,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
             print("OR - Cancel one after order triggered")
             self.slippage = round((self.data.low[-1] * 40) / 12000)
             print('P2 - Setup2 -  Buy: T-DAYOPEN {} > LOW {}: SIP: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1], sip_buy,sip_buy+p2_slip,self.data.low[-1]-self.slippage))
+            if self.data.open[0] < self.data.low[-1]:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=sip_buy,
+                    stopprice=self.data.low[-1]-self.slippage,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
         # PATTERN3
         if self.my_signal_24_P3 or self.my_signal_30_P3:
             print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
@@ -111,12 +218,41 @@ class St(bt.Strategy):
             self.slippage = round((self.data.low[-1] * 30) / 12000)
             self.smart_stop = round((self.data.high[-1] +self.data.low[-1]) / 2,2)
             print('P3 - Setup1 - Sell: T-DAYOPEN {} < LOW {}: SIP: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],self.data.open[0],self.data.low[-1]-self.slippage, self.smart_stop))
+
+            if self.data.open[0] < self.data.low[-1]:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
             self.smart_stop = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
             print('P3 - Setup2 - Buy:  T-DAYOPEN {} > CLOSE {}: SIP: {}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
+
+            if self.data.open[0] > self.data.close[-1]:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.close[-1],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
             self.sip = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
             self.slippage = round((self.sip * 30) / 12000)
             tp = round(self.data.close[-1] + ((self.data.high[-1] - self.data.low[-1]) / 2),2)
             print('P3 - Setup3 - Buy: CLOSE {} > T-DAYOPEN {} < LOW {} : SIP: {}, STOP: {}, TP: Atclose or {}'.format(self.data.close[-1],self.data.open[0],self.data.low[-1], self.sip,self.sip-self.slippage, tp))
+
+            if self.data.close[-1] > self.data.open[0] < self.data.low[-1]:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.sip,
+                    stopprice=self.sip-self.slippage,
+                    limitprice=tp,
+                    valid=bt.Order.T_Close
+                )
 
         #PATTERN 4
         if self.my_signal_24_P4 or self.my_signal_30_P4:
@@ -155,6 +291,15 @@ class St(bt.Strategy):
             self.slippage = round((self.data.open[0] * 20) / 12000)
             print('P5 - Setup1 - Sell: T-DAYOPEN {} < CLOSE {}: SIP: {}~{}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.open[0],self.data.open[0]-self.slippage, self.data.high[-1]))
 
+            if self.data.open[0] < self.data.close[-1]:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.data.high[-1],
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
             self.slippage = round((self.data.close[-1] * 45) / 12000)
             self.sip = round(self.data.close[-1] +self.slippage, 2)
 
@@ -162,10 +307,28 @@ class St(bt.Strategy):
             self.smart_stop =round(self.data.close[-1] - self.slippage,2)
             print('P5 - Setup2 - Buy:  SIP {} > T-DAYOPEN {} > CLOSE {}: SIP: {}, STOP: {}'.format(self.sip,self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
 
+            if self.sip > self.data.open[0] > self.data.close[-1]:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.close[-1],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
             self.slippage = round((self.data.close[-1] * 45) / 12000)
             self.sip = round(self.data.close[-1] + self.slippage, 2)
             p5_slip = round((self.data.open[0] * 40) / 12000)
             print('P5 - Setup3 - Sell:  T-DAYOPEN {} > SIP {} : SIP: {}, STOP: {}'.format(self.data.open[0],self.sip,self.data.open[0], self.data.open[0]+p5_slip))
+
+            if self.data.open[0] < self.data.close[-1]:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.data.open[0]+p5_slip,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
 
         #PATTERN 6
         if self.my_signal_24_P6 or self.my_signal_30_P6:
@@ -177,8 +340,24 @@ class St(bt.Strategy):
             self.smart_stop = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
             self.sip = round(self.data.close[-1] + ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
             self.slippage = round((self.data.close[-1] * 20) / 12000)
-            print('P6 - Setup1 - Long: T-DAYOPEN {} > CLOSE {}: SIP: {}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
+            print('P6 - Setup1 - Buy: T-DAYOPEN {} > CLOSE {}: SIP: {}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
+            if self.data.open[0] > self.data.close[-1]:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.close[-1],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
             print('P6 - Setup2 - Sell: T-DAYOPEN {} < CLOSE {}: SIP: {}~{}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.open[0],self.data.close[-1]-self.slippage,self.sip))
+            if self.data.open[0] < self.data.close[-1]:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.sip,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
 
 def run():
     cerebro = bt.Cerebro(stdstats=False)
@@ -187,9 +366,9 @@ def run():
 
     index_list = ['IBGB100','IBDE100', 'IBUS30', 'IBUS500','IBUST100', 'ES', 'NIFTY']
 
-    print("Available Strategies:")
-    for i, strategy in enumerate(index_list, start=1):
-        print('{}. {}'.format(i, strategy))
+    print("Available Index:")
+    for i, index in enumerate(index_list, start=1):
+        print('{}. {}'.format(i, index))
     while True:
         try:
             selected = int(input('Select a index (1-{}): '.format(i)))
