@@ -381,10 +381,10 @@ def run():
         sessionend = datetime.time(15, 00, 00)
         dataname = "IBGB100-CFD-SMART"
     elif index in ('IBDE100'):
-        tz = None
-        sessionstart = None
-        sessionend = None
-        dataname = "IBDE100-CFD-SMART"
+        tz = 'UTC'
+        sessionstart = datetime.time(7, 00, 00)
+        sessionend = datetime.time(15, 00, 00)
+        dataname='IBDE30-CFD-SMART-EUR'
     elif index in ('IBUS30'):
         tz = 'EST5EDT'
         sessionstart = datetime.time(9, 30, 00)
