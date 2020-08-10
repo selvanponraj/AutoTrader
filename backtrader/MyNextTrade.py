@@ -27,6 +27,8 @@ class St(bt.Strategy):
         txt.append("{:.2f}".format(self.data.high[0]))
         txt.append("{:.2f}".format(self.data.low[0]))
         txt.append("{:.2f}".format(self.data.close[0]))
+        txt.append("{:.2f}".format(self.st_24[0]))
+        txt.append("{:.2f}".format(self.st_30[0]))
         print(", ".join(txt))
 
     def logsignaldata(self):
@@ -38,6 +40,8 @@ class St(bt.Strategy):
         txt.append("{:.2f}".format(self.data.high[-1]))
         txt.append("{:.2f}".format(self.data.low[-1]))
         txt.append("{:.2f}".format(self.data.close[-1]))
+        txt.append("{:.2f}".format(self.st_24[-1]))
+        txt.append("{:.2f}".format(self.st_30[-1]))
         print(", ".join(txt))
 
     # def notify_order(self, order):
@@ -104,264 +108,278 @@ class St(bt.Strategy):
 
 
     def next(self):
+
         self.logdata()
-        # date = self.data.datetime.date()
-        # st_24_1 = round(self.st_24[-1], 2)
-        # st_24_2 = round(self.st_24[-2],2)
-        #
-        # st_30_1 = round(self.st_30[-1], 2)
-        # st_30_2 = round(self.st_30[-2], 2)
-        #
-        # self.my_signal_24_P1 = (st_24_2 > 80 > st_24_1 > 40)
-        # self.my_signal_30_P1 = (st_30_2 > 80 > st_30_1 > 40)
-        #
-        # self.my_signal_24_P2 = (st_24_2 > 40 > st_24_1 > 20)
-        # self.my_signal_30_P2 = (st_30_2 > 40 > st_30_1 > 20)
-        #
-        # self.my_signal_24_P3 = (st_24_2 > 20 > st_24_1 > 0)
-        # self.my_signal_30_P3 = (st_30_2 > 20 > st_30_1 > 0)
-        #
-        # self.my_signal_24_P4 = (st_24_2 < 40 < st_24_1)
-        # self.my_signal_30_P4 = (st_30_2 < 40 < st_30_1)
-        #
-        # self.my_signal_24_P5 = (st_24_2 < 90 < st_24_1 < 98)
-        # self.my_signal_30_P5 = (st_30_2 < 90 < st_30_1 < 98)
-        #
-        # self.my_signal_24_P6 = (st_24_2 < 98 < st_24_1)
-        # self.my_signal_30_P6 = (st_30_2 < 98 < st_30_1)
-        #
-        # # PATTERN1
-        # if self.my_signal_24_P1 or self.my_signal_30_P1:
-        #     print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
-        #     self.logsignaldata()
-        #     self.logdata()
-        #     print('P1-CROSSDOWN80 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2, st_24_1, st_30_2, st_30_1))
-        #
-        #     self.sip = round(self.data.close[-1] + (self.data.close[-1] - self.data.low[-1]), 2)
-        #     self.smart_stop = round(self.data.low[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
-        #
-        #     self.slippage = round((self.sip * 30) / 12000)
-        #
-        #     print('P1 -Setup1 - Buy: T-DAYOPEN {} > SIP {}: BUY:{}~{}, STOP: {}'.format(self.data.open[0],self.sip,self.sip,self.sip+self.slippage, self.smart_stop))
-        #     # if self.data.open[0] > self.sip:
-        #     #     self.order = self.buy_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.sip,
-        #     #         stopprice=self.smart_stop,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.DAY,
-        #     #         transmit=False,
-        #     #     )
-        #
-        #     print('P1 - Setup2 - Sell: T-DAYOPEN {} < SIP {}: SELL {}~{}, STOP: {}'.format(self.data.open[0],self.sip,self.sip,self.sip-self.slippage,
-        #                                                                 self.sip+self.slippage ))
-        #     # if self.data.open[0] < self.sip:
-        #     #     self.order = self.sell_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.sip,
-        #     #         stopprice=self.sip+self.slippage,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.DAY
-        #     #     )
-        #     print('*** Manual P1 - Setup3 Buy (Only If Setup2 Stopped) : BUY: {}, STOP: {}'.format(self.sip+self.slippage,self.smart_stop))
-        # # PATTERN2
-        # if self.my_signal_24_P2 or self.my_signal_30_P2:
-        #     print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
-        #     self.logsignaldata()
-        #     self.logdata()
-        #     print('P2-CROSSDOWN40 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2,st_24_1, st_30_2,st_30_1))
-        #     self.slippage = round((self.data.close[-1] * 40) / 12000)
-        #     self.smart_stop = round((self.data.high[-1] + self.data.low[-1]) / 2,2)
-        #     print('P2 - Setup1 - Sell: T-DAYOPEN {} < LOW {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],self.data.open[0],
-        #                                                                                              self.data.close[-1]-self.slippage,self.smart_stop))
-        #     # if self.data.open[0] < self.data.low[-1]:
-        #     #     self.order = self.sell_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.data.open[0],
-        #     #         stopprice=self.smart_stop,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #
-        #     sip_sell = round((self.data.close[-1] + self.data.high[-1]) / 2,2)
-        #     sip_buy = round((self.data.close[-1] + self.data.low[-1]) / 2,2)
-        #
-        #     self.slippage = round((self.data.high[-1] * 40) / 12000)
-        #     p2_slip = round((self.data.close[-1] * 10) / 12000)
-        #     print('P2 - Setup2 - Sell: T-DAYOPEN {} > LOW {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],sip_sell,sip_sell-p2_slip,self.data.high[-1]+self.slippage))
-        #     # if self.data.open[0] > self.data.low[-1]:
-        #     #     self.order = self.sell_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=sip_sell,
-        #     #         stopprice=self.data.high[-1]+self.slippage,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #     print("OR - Cancel one after order triggered")
-        #     self.slippage = round((self.data.low[-1] * 40) / 12000)
-        #     print('P2 - Setup2 -  Buy: T-DAYOPEN {} > LOW {}: BUY: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1], sip_buy,sip_buy+p2_slip,self.data.low[-1]-self.slippage))
-        #     # if self.data.open[0] > self.data.low[-1]:
-        #     #     self.order = self.buy_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=sip_buy,
-        #     #         stopprice=self.data.low[-1]-self.slippage,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        # # PATTERN3
-        # if self.my_signal_24_P3 or self.my_signal_30_P3:
-        #     print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
-        #     self.logsignaldata()
-        #     self.logdata()
-        #     print('P3-CROSSDOWN20 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2, st_24_1, st_30_2, st_30_1))
-        #     self.slippage = round((self.data.low[-1] * 30) / 12000)
-        #     self.smart_stop = round((self.data.high[-1] +self.data.low[-1]) / 2,2)
-        #     print('P3 - Setup1 - Sell: T-DAYOPEN {} < LOW {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],self.data.open[0],self.data.low[-1]-self.slippage, self.smart_stop))
-        #
-        #     # if self.data.open[0] < self.data.low[-1]:
-        #     #     self.order = self.sell_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.data.open[0],
-        #     #         stopprice=self.smart_stop,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #
-        #     self.smart_stop = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
-        #     print('P3 - Setup2 - Buy:  T-DAYOPEN {} > CLOSE {}: BUY: {}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
-        #
-        #     # if self.data.open[0] > self.data.close[-1]:
-        #     #     self.order = self.buy_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.data.close[-1],
-        #     #         stopprice=self.smart_stop,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #
-        #     self.sip = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
-        #     self.slippage = round((self.sip * 30) / 12000)
-        #     tp = round(self.data.close[-1] + ((self.data.high[-1] - self.data.low[-1]) / 2),2)
-        #     print('P3 - Setup3 - Buy: CLOSE {} > T-DAYOPEN {} < LOW {} : BUY: {}, STOP: {}, TP: Atclose or {}'.format(self.data.close[-1],self.data.open[0],self.data.low[-1], self.sip,self.sip-self.slippage, tp))
-        #
-        #     # if self.data.close[-1] > self.data.open[0] < self.data.low[-1]:
-        #     #     self.order = self.buy_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.sip,
-        #     #         stopprice=self.sip-self.slippage,
-        #     #         limitprice=tp,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #
-        # #PATTERN 4
-        # if self.my_signal_24_P4 or self.my_signal_30_P4:
-        #     print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
-        #     print('P4-CROSSOVER40 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2,st_24_1, st_30_2,st_30_1))
-        #     self.logsignaldata()
-        #     self.logdata()
-        #
-        #     self.sip = round(self.data.close[-1] + ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
-        #     sip_buy = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
-        #
-        #     self.slippage = round((self.sip * 40) / 12000)
-        #     print("Pre Conditions : Trade - On Pre P2 Long Success")
-        #     print('P4 - Setup1 - Buy: T-DAYOPEN {} > SIP {}: BUY: {}, STOP: {}'.format(self.data.open[0],self.sip,self.sip,self.data.close[-1]))
-        #     print('P4 - Setup1 - Buy: T-DAYOPEN {} < SIP {}: BUY: {}, STOP: {}'.format(self.data.open[0],self.sip,sip_buy,sip_buy-self.slippage))
-        #
-        #     self.slippage = round((self.data.open[0] * 30) / 12000)
-        #     p4_slip = round((self.data.close[-1] * 20) / 12000)
-        #     p4_avoid = round((self.data.close[-1] * 80) / 12000)
-        #     p4_avoid_1 = round((self.data.close[-1] * 100) / 12000)
-        #
-        #     print("Pre Conditions : Trade - On Pre P2 Long Failure")
-        #     print("Pre Conditions : Avoid - T-DAYOPEN {}~{} points Gap Down ".format(p4_avoid,p4_avoid_1))
-        #     print('P4 - Setup2 - Sell: T-DAYOPEN {} < CLOSE {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.open[0],self.data.close[-1]-self.slippage,self.data.close[-1]+p4_slip))
-        #
-        #     self.smart_stop = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
-        #     print('P4 - Setup3 - Sell: T-DAYOPEN {} > HIGH {}: SELL: {}, STOP: {}'.format(self.data.open[0],self.data.high[-1],self.data.close[0],self.smart_stop))
-        #
-        # #PATTERN 5
-        # if self.my_signal_24_P5 or self.my_signal_30_P5:
-        #     print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
-        #     print('P5-CROSSOVER90 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2, st_24_1, st_30_2, st_30_1))
-        #     self.logsignaldata()
-        #     self.logdata()
-        #
-        #     self.slippage = round((self.data.open[0] * 20) / 12000)
-        #     print('P5 - Setup1 - Sell: T-DAYOPEN {} < CLOSE {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.open[0],self.data.open[0]-self.slippage, self.data.high[-1]))
-        #
-        #     # if self.data.open[0] < self.data.close[-1]:
-        #     #     self.order = self.sell_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.data.open[0],
-        #     #         stopprice=self.data.high[-1],
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #
-        #     self.slippage = round((self.data.close[-1] * 45) / 12000)
-        #     self.sip = round(self.data.close[-1] +self.slippage, 2)
-        #
-        #     self.slippage = round((self.data.close[-1] * 40) / 12000)
-        #     self.smart_stop =round(self.data.close[-1] - self.slippage,2)
-        #     print('P5 - Setup2 - Buy:  SIP {} > T-DAYOPEN {} > CLOSE {}: BUY: {}, STOP: {}'.format(self.sip,self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
-        #
-        #     # if self.sip > self.data.open[0] > self.data.close[-1]:
-        #     #     self.order = self.buy_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.data.close[-1],
-        #     #         stopprice=self.smart_stop,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #
-        #     self.slippage = round((self.data.close[-1] * 45) / 12000)
-        #     self.sip = round(self.data.close[-1] + self.slippage, 2)
-        #     p5_slip = round((self.data.open[0] * 40) / 12000)
-        #     print('P5 - Setup3 - Sell:  T-DAYOPEN {} > SIP {} : SELL: {}, STOP: {}'.format(self.data.open[0],self.sip,self.data.open[0], self.data.open[0]+p5_slip))
-        #
-        #     # if self.data.open[0] > self.sip:
-        #     #     self.order = self.sell_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.data.open[0],
-        #     #         stopprice=self.data.open[0]+p5_slip,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #
-        # #PATTERN 6
-        # if self.my_signal_24_P6 or self.my_signal_30_P6:
-        #     print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
-        #     print('P6-CROSSOVER98 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2, st_24_1, st_30_2, st_30_1))
-        #     self.logsignaldata()
-        #     self.logdata()
-        #
-        #     self.smart_stop = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
-        #     self.sip = round(self.data.close[-1] + ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
-        #     self.slippage = round((self.data.close[-1] * 20) / 12000)
-        #     print('P6 - Setup1 - Buy: T-DAYOPEN {} > CLOSE {}: BUY: {}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
-        #     # if self.data.open[0] > self.data.close[-1]:
-        #     #     self.order = self.buy_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.data.close[-1],
-        #     #         stopprice=self.smart_stop,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
-        #     print('P6 - Setup2 - Sell: T-DAYOPEN {} < CLOSE {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.open[0],self.data.close[-1]-self.slippage,self.sip))
-        #     # if self.data.open[0] < self.data.close[-1]:
-        #     #     self.order = self.sell_bracket(
-        #     #         exectype=bt.Order.Limit,
-        #     #         price=self.data.open[0],
-        #     #         stopprice=self.sip,
-        #     #         limitexec=None,
-        #     #         valid=bt.Order.T_Close
-        #     #     )
+
+        date = self.data.datetime.date()
+        place_order = True if date == datetime.datetime.today() else False
+
+        st_24_1 = round(self.st_24[-1], 2)
+        st_24_2 = round(self.st_24[-2],2)
+
+        st_30_1 = round(self.st_30[-1], 2)
+        st_30_2 = round(self.st_30[-2], 2)
+
+        self.my_signal_24_P1 = (st_24_2 > 80 > st_24_1 > 40)
+        self.my_signal_30_P1 = (st_30_2 > 80 > st_30_1 > 40)
+
+        self.my_signal_24_P2 = (st_24_2 > 40 > st_24_1 > 20)
+        self.my_signal_30_P2 = (st_30_2 > 40 > st_30_1 > 20)
+
+        self.my_signal_24_P3 = (st_24_2 > 20 > st_24_1 > 0)
+        self.my_signal_30_P3 = (st_30_2 > 20 > st_30_1 > 0)
+
+        self.my_signal_24_P4 = (st_24_2 < 40 < st_24_1)
+        self.my_signal_30_P4 = (st_30_2 < 40 < st_30_1)
+
+        self.my_signal_24_P5 = (st_24_2 < 90 < st_24_1 < 98)
+        self.my_signal_30_P5 = (st_30_2 < 90 < st_30_1 < 98)
+
+        self.my_signal_24_P6 = (st_24_2 < 98 < st_24_1)
+        self.my_signal_30_P6 = (st_30_2 < 98 < st_30_1)
+
+        # PATTERN1
+        if self.my_signal_24_P1 or self.my_signal_30_P1:
+            print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
+            print("Place Order: {}".format(place_order))
+            print('P1-CROSSDOWN80 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2, st_24_1, st_30_2, st_30_1))
+
+            self.sip = round(self.data.close[-1] + (self.data.close[-1] - self.data.low[-1]), 2)
+            self.smart_stop = round(self.data.low[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
+
+            self.slippage = round((self.sip * 30) / 12000)
+
+            print('P1 -Setup1 - Buy: T-DAYOPEN {} > SIP {}: BUY:{}~{}, STOP: {}'.format(self.data.open[0],self.sip,self.sip,self.sip+self.slippage, self.smart_stop))
+
+            if self.data.open[0] > self.sip and place_order:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.sip,
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.DAY,
+                    transmit=False,
+                )
+
+            print('P1 - Setup2 - Sell: T-DAYOPEN {} < SIP {}: SELL {}~{}, STOP: {}'.format(self.data.open[0],self.sip,self.sip,self.sip-self.slippage,
+                                                                        self.sip+self.slippage ))
+            if self.data.open[0] < self.sip and place_order:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.sip,
+                    stopprice=self.sip+self.slippage,
+                    limitexec=None,
+                    valid=bt.Order.DAY
+                )
+            print('*** Manual P1 - Setup3 Buy (Only If Setup2 Stopped) : BUY: {}, STOP: {}'.format(self.sip+self.slippage,self.smart_stop))
+            print('-' * 32, ' END ', '-' * 32)
+        # PATTERN2
+        if self.my_signal_24_P2 or self.my_signal_30_P2:
+            print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
+            print("Place Order: {}".format(place_order))
+            # self.logsignaldata()
+            # self.logdata()
+            print('P2-CROSSDOWN40 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2,st_24_1, st_30_2,st_30_1))
+            self.slippage = round((self.data.close[-1] * 40) / 12000)
+            self.smart_stop = round((self.data.high[-1] + self.data.low[-1]) / 2,2)
+            print('P2 - Setup1 - Sell: T-DAYOPEN {} < LOW {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],self.data.open[0],
+                                                                                                     self.data.close[-1]-self.slippage,self.smart_stop))
+            if self.data.open[0] < self.data.low[-1] and place_order:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
+            sip_sell = round((self.data.close[-1] + self.data.high[-1]) / 2,2)
+            sip_buy = round((self.data.close[-1] + self.data.low[-1]) / 2,2)
+
+            self.slippage = round((self.data.high[-1] * 40) / 12000)
+            p2_slip = round((self.data.close[-1] * 10) / 12000)
+            print('P2 - Setup2 - Sell: T-DAYOPEN {} > LOW {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],sip_sell,sip_sell-p2_slip,self.data.high[-1]+self.slippage))
+            if self.data.open[0] > self.data.low[-1] and place_order:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=sip_sell,
+                    stopprice=self.data.high[-1]+self.slippage,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+            print("OR - Cancel one after order triggered")
+            self.slippage = round((self.data.low[-1] * 40) / 12000)
+            print('P2 - Setup2 -  Buy: T-DAYOPEN {} > LOW {}: BUY: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1], sip_buy,sip_buy+p2_slip,self.data.low[-1]-self.slippage))
+            if self.data.open[0] > self.data.low[-1] and place_order:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=sip_buy,
+                    stopprice=self.data.low[-1]-self.slippage,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+            print('-' * 32, ' END ', '-' * 32)
+        # PATTERN3
+        if self.my_signal_24_P3 or self.my_signal_30_P3:
+            print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
+            print("Place Order: {}".format(place_order))
+            # self.logsignaldata()
+            # self.logdata()
+            print('P3-CROSSDOWN20 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2, st_24_1, st_30_2, st_30_1))
+            self.slippage = round((self.data.low[-1] * 30) / 12000)
+            self.smart_stop = round((self.data.high[-1] +self.data.low[-1]) / 2,2)
+            print('P3 - Setup1 - Sell: T-DAYOPEN {} < LOW {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.low[-1],self.data.open[0],self.data.low[-1]-self.slippage, self.smart_stop))
+
+            if self.data.open[0] < self.data.low[-1] and place_order:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
+            self.smart_stop = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
+            print('P3 - Setup2 - Buy:  T-DAYOPEN {} > CLOSE {}: BUY: {}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
+
+            if self.data.open[0] > self.data.close[-1] and place_order:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.close[-1],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
+            self.sip = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2),2)
+            self.slippage = round((self.sip * 30) / 12000)
+            tp = round(self.data.close[-1] + ((self.data.high[-1] - self.data.low[-1]) / 2),2)
+            print('P3 - Setup3 - Buy: CLOSE {} > T-DAYOPEN {} < LOW {} : BUY: {}, STOP: {}, TP: Atclose or {}'.format(self.data.close[-1],self.data.open[0],self.data.low[-1], self.sip,self.sip-self.slippage, tp))
+
+            if self.data.close[-1] > self.data.open[0] < self.data.low[-1] and place_order:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.sip,
+                    stopprice=self.sip-self.slippage,
+                    limitprice=tp,
+                    valid=bt.Order.T_Close
+                )
+            print('-' * 32, ' END ', '-' * 32)
+
+        #PATTERN 4
+        if self.my_signal_24_P4 or self.my_signal_30_P4:
+            print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
+            print("Place Order: {}".format(place_order))
+            print('P4-CROSSOVER40 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2,st_24_1, st_30_2,st_30_1))
+            # self.logsignaldata()
+            # self.logdata()
+
+            self.sip = round(self.data.close[-1] + ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
+            sip_buy = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
+
+            self.slippage = round((self.sip * 40) / 12000)
+            print("Pre Conditions : Trade - On Pre P2 Long Success")
+            print('P4 - Setup1 - Buy: T-DAYOPEN {} > SIP {}: BUY: {}, STOP: {}'.format(self.data.open[0],self.sip,self.sip,self.data.close[-1]))
+            print('P4 - Setup1 - Buy: T-DAYOPEN {} < SIP {}: BUY: {}, STOP: {}'.format(self.data.open[0],self.sip,sip_buy,sip_buy-self.slippage))
+
+            self.slippage = round((self.data.open[0] * 30) / 12000)
+            p4_slip = round((self.data.close[-1] * 20) / 12000)
+            p4_avoid = round((self.data.close[-1] * 80) / 12000)
+            p4_avoid_1 = round((self.data.close[-1] * 100) / 12000)
+
+            print("Pre Conditions : Trade - On Pre P2 Long Failure")
+            print("Pre Conditions : Avoid - T-DAYOPEN {}~{} points Gap Down ".format(p4_avoid,p4_avoid_1))
+            print('P4 - Setup2 - Sell: T-DAYOPEN {} < CLOSE {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.open[0],self.data.close[-1]-self.slippage,self.data.close[-1]+p4_slip))
+
+            self.smart_stop = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
+            print('P4 - Setup3 - Sell: T-DAYOPEN {} > HIGH {}: SELL: {}, STOP: {}'.format(self.data.open[0],self.data.high[-1],self.data.close[0],self.smart_stop))
+            print('-' * 32, ' END ', '-' * 32)
+        #PATTERN 5
+        if self.my_signal_24_P5 or self.my_signal_30_P5:
+            print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
+            print("Place Order: {}".format(place_order))
+            print('P5-CROSSOVER90 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2, st_24_1, st_30_2, st_30_1))
+            # self.logsignaldata()
+            # self.logdata()
+
+            self.slippage = round((self.data.open[0] * 20) / 12000)
+            print('P5 - Setup1 - Sell: T-DAYOPEN {} < CLOSE {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.open[0],self.data.open[0]-self.slippage, self.data.high[-1]))
+
+            if self.data.open[0] < self.data.close[-1] and place_order:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.data.high[-1],
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
+            self.slippage = round((self.data.close[-1] * 45) / 12000)
+            self.sip = round(self.data.close[-1] +self.slippage, 2)
+
+            self.slippage = round((self.data.close[-1] * 40) / 12000)
+            self.smart_stop =round(self.data.close[-1] - self.slippage,2)
+            print('P5 - Setup2 - Buy:  SIP {} > T-DAYOPEN {} > CLOSE {}: BUY: {}, STOP: {}'.format(self.sip,self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
+
+            if self.sip > self.data.open[0] > self.data.close[-1] and place_order:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.close[-1],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+
+            self.slippage = round((self.data.close[-1] * 45) / 12000)
+            self.sip = round(self.data.close[-1] + self.slippage, 2)
+            p5_slip = round((self.data.open[0] * 40) / 12000)
+            print('P5 - Setup3 - Sell:  T-DAYOPEN {} > SIP {} : SELL: {}, STOP: {}'.format(self.data.open[0],self.sip,self.data.open[0], self.data.open[0]+p5_slip))
+
+            if self.data.open[0] > self.sip and place_order:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.data.open[0]+p5_slip,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+            print('-' * 32, ' END ', '-' * 32)
+
+        #PATTERN 6
+        if self.my_signal_24_P6 or self.my_signal_30_P6 and place_order:
+            print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
+            print("Place Order: {}".format(place_order))
+            print('P6-CROSSOVER98 - ST24: {} -> {}, ST30: {} -> {}'.format(st_24_2, st_24_1, st_30_2, st_30_1))
+            # self.logsignaldata()
+            # self.logdata()
+
+            self.smart_stop = round(self.data.close[-1] - ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
+            self.sip = round(self.data.close[-1] + ((self.data.high[-1] - self.data.low[-1]) / 2), 2)
+            self.slippage = round((self.data.close[-1] * 20) / 12000)
+            print('P6 - Setup1 - Buy: T-DAYOPEN {} > CLOSE {}: BUY: {}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.close[-1],self.smart_stop))
+            if self.data.open[0] > self.data.close[-1] and place_order:
+                self.order = self.buy_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.close[-1],
+                    stopprice=self.smart_stop,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+            print('P6 - Setup2 - Sell: T-DAYOPEN {} < CLOSE {}: SELL: {}~{}, STOP: {}'.format(self.data.open[0],self.data.close[-1],self.data.open[0],self.data.close[-1]-self.slippage,self.sip))
+            if self.data.open[0] < self.data.close[-1] and place_order:
+                self.order = self.sell_bracket(
+                    exectype=bt.Order.Limit,
+                    price=self.data.open[0],
+                    stopprice=self.sip,
+                    limitexec=None,
+                    valid=bt.Order.T_Close
+                )
+            print('-' * 32, ' END ', '-' * 32)
 
 def run():
     cerebro = bt.Cerebro(stdstats=False)
 
-    index_list = ['IBGB100','IBDE100', 'IBUS30', 'IBUS500','IBUST100', 'ES', 'NIFTY']
+    index_list = ['IBGB100','IBDE30', 'IBUS30', 'IBUS500','IBUST100', 'ES', 'NQ', 'DOW','NIFTY']
 
     print("Available Index:")
     for i, index in enumerate(index_list, start=1):
@@ -375,36 +393,66 @@ def run():
         except (ValueError, IndexError):
             print('This is not a valid selection. Please enter number between 1 and {}!'.format(i))
 
+    # # data = bt.feeds.YahooFinanceCSVData(
+    # #     dataname=datapath,
+    # #     fromdate=datetime.datetime(2019, 1, 1),
+    # #     todate=datetime.datetime(2019, 12, 31),
+    # #     reverse=False)
+    # data = bt.feeds.YahooFinanceData(dataname='^NSEI',  fromdate=datetime.datetime(2018, 1, 1),
+    #         todate=datetime.datetime(2019, 12, 31))
+
     if index in('IBGB100'):
         tz='UTC'
+        sessionstart = None
+        sessionend = None
         sessionstart = datetime.time(7, 00, 00)
         sessionend = datetime.time(15, 00, 00)
         dataname = "IBGB100-CFD-SMART"
-    elif index in ('IBDE100'):
+    elif index in ('IBDE30'):
         tz = 'UTC'
+        sessionstart = None
+        sessionend = None
         sessionstart = datetime.time(7, 00, 00)
-        sessionend = datetime.time(15, 00, 00)
+        sessionend = datetime.time(15, 30, 00)
         dataname='IBDE30-CFD-SMART-EUR'
     elif index in ('IBUS30'):
-        tz = 'EST5EDT'
-        sessionstart = datetime.time(9, 30, 00)
-        sessionend = datetime.time(16, 00, 00)
+        tz = 'UTC'
+        sessionstart = None
+        sessionend = None
+        # sessionstart = datetime.time(13, 30, 00)
+        # sessionend = datetime.time(21, 00, 00)
         dataname = "IBUS30-CFD-SMART"
     elif index in ('IBUS500'):
-        tz = 'EST5EDT'
-        sessionstart = datetime.time(9, 30, 00)
-        sessionend = datetime.time(16, 00, 00)
+        tz = 'UTC'
+        sessionstart = None
+        sessionend = None
+        sessionstart = datetime.time(13, 30, 00)
+        sessionend = datetime.time(20, 00, 00)
         dataname = "IBUS500-CFD-SMART"
     elif index in ('IBUST100'):
-        tz = 'EST5EDT'
-        sessionstart = datetime.time(9, 30, 00)
-        sessionend = datetime.time(16, 00, 00)
+        tz = 'UTC'
+        sessionstart = None
+        sessionend = None
+        sessionstart = datetime.time(13, 30, 00)
+        sessionend = datetime.time(20, 00, 00)
         dataname = "IBUST100-CFD-SMART"
     elif index in ('ES'):
-        tz = 'EST5EDT'
-        sessionstart=datetime.time(9, 30, 00)
-        sessionend=datetime.time(16, 00, 00)
+        tz = 'UTC'
+        sessionstart = None
+        sessionend = None
+        # sessionstart = datetime.time(13, 30, 00)
+        # sessionend = datetime.time(20, 00, 00)
         dataname = "ES-202009-GLOBEX"
+    elif index in ('NQ'):
+        tz = 'UTC'
+        sessionstart = None
+        sessionend = None
+        dataname = "NQ-202009-GLOBEX"
+    elif index in ('DOW'):
+        tz = 'UTC'
+        sessionstart = None
+        sessionend = None
+        dataname = "YM-202009-ECBOT"
     elif index in 'NIFTY':
         tz = None
         sessionstart = datetime.time(9, 30, 00)
@@ -417,25 +465,27 @@ def run():
         timeframe=bt.TimeFrame.Minutes,
         tz=tz,
         rtbar=False,  # use RealTime 5 seconds bars
-        # historical=True,  # only historical download
+        historical=True,  # only historical download
         qcheck=0.5,  # timeout in seconds (float) to check for events
-        # fromdate=datetime.datetime(2020, 6, 1),  # get data from..
-        # todate=datetime.datetime(2020, 12, 31),  # get data till..
+        fromdate=(datetime.datetime.today() - datetime.timedelta(days=60)),  # get data from..
         # todate=datetime.datetime.today(),  # get data till..
         latethrough=False,  # let late samples through
+        # fromdate= datetime.datetime(2020, 8, 6),
+        # todate=datetime.datetime(2020, 12, 31),  # get data till..
         tradename=None,  # use a different asset as order target,
         useRTH=True,
         sessionstart=sessionstart,
-        sessionend=sessionend
+        sessionend=sessionend,
+        # compression=1
     )
 
     if index not in ('NIFTY'):
         store = bt.stores.IBStore(port=7497, clientId=1001)
         cerebro.broker = store.getbroker()
         data = store.getdata(dataname=dataname, **stockkwargs)
-        data.addfilter(bt.filters.SessionFilter)
-        cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=180)
-
+        # data.addfilter(bt.filters.SessionFilter)
+        cerebro.resampledata(data, timeframe=bt.TimeFrame.Days, compression=1)
+        # cerebro.adddata(data)
     cerebro.addstrategy(St)
 
     # # Set our desired cash start
