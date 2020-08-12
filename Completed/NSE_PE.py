@@ -2,7 +2,6 @@ from datetime import date
 import pandas as pd
 from nsepy import get_history, get_index_pe_history
 from backtrader.feeds import GenericCSVData
-from report import Cerebro
 import backtrader as bt
 import os
 
@@ -78,8 +77,8 @@ cerebro.run()
 # print('Final value is %.2f times the initial investment'%(cerebro.broker.getvalue()/1000000.0))
 # cerebro.plot()
 
-report_dir = os.path.join(homepath,'auto_trade/local/AutoTrader/report')
-cerebro.report('report_dir',
-               infile='nifty17years_withPE.csv',
-               user='Trading Selvan',
-               memo='Nifty PE')
+# report_dir = os.path.join(homepath,'auto_trade/local/AutoTrader/report')
+# cerebro.report('report_dir',
+#                infile='nifty17years_withPE.csv',
+#                user='Trading Selvan',
+#                memo='Nifty PE')
