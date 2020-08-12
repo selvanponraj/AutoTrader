@@ -6,6 +6,7 @@ import backtrader as bt
 import datetime
 
 
+
 class St(bt.Strategy):
 
     def __init__(self):
@@ -44,75 +45,10 @@ class St(bt.Strategy):
         txt.append("{:.2f}".format(self.st_30[-1]))
         print(", ".join(txt))
 
-    # def notify_order(self, order):
-    #     date = self.data.datetime.datetime().date()
-    #
-    #     if order.status == order.Accepted:
-    #         print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
-    #         print('Order Accepted')
-    #         print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
-    #             date,
-    #             order.status,
-    #             order.ref,
-    #             order.size,
-    #             'NA' if not order.price else round(order.price, 5)
-    #         ))
-    #
-    #     if order.status == order.Completed:
-    #         print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
-    #         print('Order Completed')
-    #         print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
-    #             date,
-    #             order.status,
-    #             order.ref,
-    #             order.size,
-    #             'NA' if not order.price else round(order.price, 5)
-    #         ))
-    #         print('Created: {} Price: {} Size: {}'.format(bt.num2date(order.created.dt), order.created.price,
-    #                                                       order.created.size))
-    #         print('-' * 80)
-    #
-    #     if order.status == order.Canceled:
-    #         print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
-    #         print('Order Canceled')
-    #         print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
-    #             date,
-    #             order.status,
-    #             order.ref,
-    #             order.size,
-    #             'NA' if not order.price else round(order.price, 5)
-    #         ))
-    #
-    #     if order.status == order.Rejected:
-    #         print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
-    #         print('WARNING! Order Rejected')
-    #         print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
-    #             date,
-    #             order.status,
-    #             order.ref,
-    #             order.size,
-    #             'NA' if not order.price else round(order.price, 5)
-    #         ))
-    #         print('-' * 80)
-    #
-    # def notify_trade(self, trade):
-    #     date = self.data.datetime.datetime()
-    #     if trade.isclosed:
-    #         print('-' * 32, ' NOTIFY TRADE ', '-' * 32)
-    #         print('{}, Close Price: {}, Profit, Gross {}, Net {}'.format(
-    #             date,
-    #             trade.price,
-    #             round(trade.pnl, 2),
-    #             round(trade.pnlcomm, 2)))
-    #         print('-' * 80)
-
-
     def next(self):
-
         self.logdata()
-
         date = self.data.datetime.date()
-        place_order = True if date == datetime.datetime.today() else False
+        place_order = True if date == datetime.date.today() else False
 
         st_24_1 = round(self.st_24[-1], 2)
         st_24_2 = round(self.st_24[-2],2)
@@ -379,7 +315,7 @@ class St(bt.Strategy):
 def run():
     cerebro = bt.Cerebro(stdstats=False)
 
-    index_list = ['IBGB100','IBDE30', 'IBUS30', 'IBUS500','IBUST100', 'ES', 'NQ', 'DOW','NIFTY']
+    index_list = ['IBGB100','IBDE30', 'IBUS30', 'IBUS500','IBUST100','IBAU200','ES', 'NQ', 'DOW','NIFTY']
 
     print("Available Index:")
     for i, index in enumerate(index_list, start=1):
@@ -419,8 +355,8 @@ def run():
         tz = 'UTC'
         sessionstart = None
         sessionend = None
-        # sessionstart = datetime.time(13, 30, 00)
-        # sessionend = datetime.time(21, 00, 00)
+        sessionstart = datetime.time(13, 30, 00)
+        sessionend = datetime.time(20, 00, 00)
         dataname = "IBUS30-CFD-SMART"
     elif index in ('IBUS500'):
         tz = 'UTC'
@@ -436,12 +372,17 @@ def run():
         sessionstart = datetime.time(13, 30, 00)
         sessionend = datetime.time(20, 00, 00)
         dataname = "IBUST100-CFD-SMART"
-    elif index in ('ES'):
+    elif index in ('IBAU200'):
         tz = 'UTC'
         sessionstart = None
         sessionend = None
         # sessionstart = datetime.time(13, 30, 00)
-        # sessionend = datetime.time(20, 00, 00)
+        sessionend = datetime.time(6, 00, 00)
+        dataname = "IBAU200-CFD-SMART"
+    elif index in ('ES'):
+        tz = 'UTC'
+        sessionstart = None
+        sessionend = None
         dataname = "ES-202009-GLOBEX"
     elif index in ('NQ'):
         tz = 'UTC'
@@ -483,8 +424,8 @@ def run():
         store = bt.stores.IBStore(port=7497, clientId=1001)
         cerebro.broker = store.getbroker()
         data = store.getdata(dataname=dataname, **stockkwargs)
-        # data.addfilter(bt.filters.SessionFilter)
-        cerebro.resampledata(data, timeframe=bt.TimeFrame.Days, compression=1)
+        data.addfilter(bt.filters.MySessionFilter)
+        cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=60)
         # cerebro.adddata(data)
     cerebro.addstrategy(St)
 

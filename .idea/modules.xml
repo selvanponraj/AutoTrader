@@ -3,6 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/AutoTrader.iml" filepath="$PROJECT_DIR$/.idea/AutoTrader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../analyzingalpha/.idea/analyzingalpha.iml" filepath="$PROJECT_DIR$/../analyzingalpha/.idea/analyzingalpha.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../backtrader/.idea/backtrader.iml" filepath="$PROJECT_DIR$/../backtrader/.idea/backtrader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../btreport/.idea/btreport.iml" filepath="$PROJECT_DIR$/../btreport/.idea/btreport.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../../ezibpy/.idea/ezibpy.iml" filepath="$PROJECT_DIR$/../../ezibpy/.idea/ezibpy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../tv2bt/.idea/tv2bt.iml" filepath="$PROJECT_DIR$/../tv2bt/.idea/tv2bt.iml" />
     </modules>
   </component>
 </project>

@@ -6,7 +6,11 @@
       <sourceFolder url="file://$MODULE_DIR$/prediction_functions" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/trade_functions" isTestSource="false" />
     </content>
-    <orderEntry type="inheritedJdk" />
+    <orderEntry type="jdk" jdkName="Python 3.7 (vt_qtpylib)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="backtrader" />
+    <orderEntry type="module" module-name="ezibpy" />
+    <orderEntry type="module" module-name="tv2bt" />
+    <orderEntry type="module" module-name="btreport" />
   </component>
 </module>
