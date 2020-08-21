@@ -12,5 +12,7 @@
     <orderEntry type="module" module-name="ezibpy" />
     <orderEntry type="module" module-name="tv2bt" />
     <orderEntry type="module" module-name="btreport" />
+    <orderEntry type="module" module-name="PropertyEvaluator" />
+    <orderEntry type="module" module-name="RL_trade_ES_futures" />
   </component>
 </module>

@@ -5,13 +5,12 @@ from pandas.plotting import lag_plot
 
 from prediction_functions import CalculateExtrema as Extrema
 from trade_functions import DetermineOrderParameters as DOP
-
+from psql.setup_psql_environment import get_database
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import datetime as dt
 import pmdarima as pm
-
 
 class ARIMAAlgo(Algo):
     def on_start(self):

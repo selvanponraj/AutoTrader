@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/AutoTrader.iml" filepath="$PROJECT_DIR$/.idea/AutoTrader.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../PropertyAnalysis/.idea/PropertyEvaluator.iml" filepath="$PROJECT_DIR$/../PropertyAnalysis/.idea/PropertyEvaluator.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../RL_trade_ES_futures/.idea/RL_trade_ES_futures.iml" filepath="$PROJECT_DIR$/../RL_trade_ES_futures/.idea/RL_trade_ES_futures.iml" />
       <module fileurl="file://$PROJECT_DIR$/../analyzingalpha/.idea/analyzingalpha.iml" filepath="$PROJECT_DIR$/../analyzingalpha/.idea/analyzingalpha.iml" />
       <module fileurl="file://$PROJECT_DIR$/../backtrader/.idea/backtrader.iml" filepath="$PROJECT_DIR$/../backtrader/.idea/backtrader.iml" />
       <module fileurl="file://$PROJECT_DIR$/../btreport/.idea/btreport.iml" filepath="$PROJECT_DIR$/../btreport/.idea/btreport.iml" />

@@ -60,6 +60,7 @@ class St(bt.Strategy):
         pass
 
     def next(self):
+
         self.logdata()
 
         # if not self.data_live:
@@ -93,15 +94,16 @@ def run(args=None):
     # dataname = 'YM-202009-ECBOT'
     # dataname = 'GXBT'
     # dataname = 'NIFTY-202008-SGX'
-
+    start = datetime.datetime(2020, 1, 1)
+    end = datetime.datetime(2020, 8, 19)
     stockkwargs = dict(
         timeframe=bt.TimeFrame.Minutes,
         tz=None,
         rtbar=True,  # use RealTime 5 seconds bars
         historical=True,  # only historical download
         qcheck=0.5,  # timeout in seconds (float) to check for events
-        # fromdate=datetime.datetime(2020, 6, 1),  # get data from..
-        # todate=datetime.datetime(2020, 12, 31),  # get data till..
+        fromdate=start,  # get data from..
+        todate=end,  # get data till..
         # todate=datetime.datetime.today(),  # get data till..
         latethrough=False,  # let late samples through
         tradename=None,  # use a different asset as order target,
@@ -114,7 +116,7 @@ def run(args=None):
     #                        qcheck=1.0, latethrough=False,
     #                        tz=None, tzinput=None, useRTH=True)
 
-    data0 = store.getdata(dataname=dataname, **stockkwargs)
+    data0 = bt.feeds.IBData(dataname='AAPL-STK-SMART-USD', **stockkwargs)
     print(data0.lines)
     data0.addfilter(bt.filters.SessionFilter)
     cerebro.resampledata(data0, timeframe=bt.TimeFrame.Days, compression=1)

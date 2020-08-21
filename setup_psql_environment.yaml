@@ -1,0 +1,5 @@
+PGHOST: localhost
+PGDATABASE: alpha
+PGUSER: alpha
+PGPASSWORD: alpha
+PGPORT: 5432

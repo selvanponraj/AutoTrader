@@ -7,7 +7,7 @@ import random
 from copy import deepcopy
 # Loaded backend TkAgg version unknown? ANd  finding fonts debug msgs... https://github.com/matplotlib/matplotlib/issues/14523
 import logging
-
+logging.getLogger('matplotlib').disabled = True
 logging.getLogger('matplotlib.font_manager').disabled = True
 
 
@@ -143,8 +143,8 @@ datakwargs = dict(
     tz=None,
     useRTH=True
 )
-
-data0 = IBDataFactory(dataname='LABU', **datakwargs)
+dataname='ES-202009-GLOBEX'
+data0 = IBDataFactory(dataname='ES-202009-GLOBEX', **datakwargs)
 data0.plotinfo.plotmaster = data0
 
 cerebro.adddata(data0)  # Give the data to cerebro

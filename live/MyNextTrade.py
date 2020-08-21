@@ -45,6 +45,68 @@ class St(bt.Strategy):
         txt.append("{:.2f}".format(self.st_30[-1]))
         print(", ".join(txt))
 
+    def notify_order(self, order):
+        date = self.data.datetime.datetime().date()
+
+        if order.status == order.Accepted:
+            print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
+            print('Order Accepted')
+            print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
+                date,
+                order.status,
+                order.ref,
+                order.size,
+                'NA' if not order.price else round(order.price, 5)
+            ))
+
+        if order.status == order.Completed:
+            print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
+            print('Order Completed')
+            print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
+                date,
+                order.status,
+                order.ref,
+                order.size,
+                'NA' if not order.price else round(order.price, 5)
+            ))
+            print('Created: {} Price: {} Size: {}'.format(bt.num2date(order.created.dt), order.created.price,
+                                                          order.created.size))
+            print('-' * 80)
+
+        if order.status == order.Canceled:
+            print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
+            print('Order Canceled')
+            print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
+                date,
+                order.status,
+                order.ref,
+                order.size,
+                'NA' if not order.price else round(order.price, 5)
+            ))
+
+        if order.status == order.Rejected:
+            print('-' * 32, ' NOTIFY ORDER ', '-' * 32)
+            print('WARNING! Order Rejected')
+            print('{}, Status {}: Ref: {}, Size: {}, Price: {}'.format(
+                date,
+                order.status,
+                order.ref,
+                order.size,
+                'NA' if not order.price else round(order.price, 5)
+            ))
+            print('-' * 80)
+
+    def notify_trade(self, trade):
+        date = self.data.datetime.datetime()
+        if trade.isclosed:
+            print('-' * 32, ' NOTIFY TRADE ', '-' * 32)
+            print('{}, Close Price: {}, Profit, Gross {}, Net {}'.format(
+                date,
+                trade.price,
+                round(trade.pnl, 2),
+                round(trade.pnlcomm, 2)))
+            print('-' * 80)
+
     def next(self):
         self.logdata()
         date = self.data.datetime.date()
@@ -156,7 +218,7 @@ class St(bt.Strategy):
                 )
             print('-' * 32, ' END ', '-' * 32)
         # PATTERN3
-        if self.my_signal_24_P3 or self.my_signal_30_P3:
+        if (self.my_signal_24_P3 or self.my_signal_30_P3) and place_order:
             print('-' * 32, ' TRADINGPLAN FOR {}'.format(date), '-' * 32)
             print("Place Order: {}".format(place_order))
             # self.logsignaldata()
@@ -315,8 +377,13 @@ class St(bt.Strategy):
 def run():
     cerebro = bt.Cerebro(stdstats=False)
 
-    index_list = ['IBGB100','IBDE30', 'IBUS30', 'IBUS500','IBUST100','IBAU200','ES', 'NQ', 'DOW','NIFTY']
+    add_data(cerebro)
+    cerebro.addstrategy(St)
+    cerebro.run()
 
+
+def add_data(cerebro):
+    index_list = ['IBGB100', 'IBDE30', 'IBUS30', 'IBUS500', 'IBUST100', 'IBAU200', 'ES', 'NQ', 'DOW', 'NIFTY']
     print("Available Index:")
     for i, index in enumerate(index_list, start=1):
         print('{}. {}'.format(i, index))
@@ -328,7 +395,6 @@ def run():
             break
         except (ValueError, IndexError):
             print('This is not a valid selection. Please enter number between 1 and {}!'.format(i))
-
     # # data = bt.feeds.YahooFinanceCSVData(
     # #     dataname=datapath,
     # #     fromdate=datetime.datetime(2019, 1, 1),
@@ -336,21 +402,22 @@ def run():
     # #     reverse=False)
     # data = bt.feeds.YahooFinanceData(dataname='^NSEI',  fromdate=datetime.datetime(2018, 1, 1),
     #         todate=datetime.datetime(2019, 12, 31))
-
-    if index in('IBGB100'):
-        tz='UTC'
+    if index in ('IBGB100'):
+        tz = 'UTC'
         sessionstart = None
         sessionend = None
         sessionstart = datetime.time(7, 00, 00)
         sessionend = datetime.time(15, 00, 00)
         dataname = "IBGB100-CFD-SMART"
+        what = 'MIDPOINT'
     elif index in ('IBDE30'):
         tz = 'UTC'
         sessionstart = None
         sessionend = None
         sessionstart = datetime.time(7, 00, 00)
         sessionend = datetime.time(15, 30, 00)
-        dataname='IBDE30-CFD-SMART-EUR'
+        dataname = 'IBDE30-CFD-SMART-EUR'
+        what = 'MIDPOINT'
     elif index in ('IBUS30'):
         tz = 'UTC'
         sessionstart = None
@@ -358,6 +425,7 @@ def run():
         sessionstart = datetime.time(13, 30, 00)
         sessionend = datetime.time(20, 00, 00)
         dataname = "IBUS30-CFD-SMART"
+        what = 'MIDPOINT'
     elif index in ('IBUS500'):
         tz = 'UTC'
         sessionstart = None
@@ -365,6 +433,7 @@ def run():
         sessionstart = datetime.time(13, 30, 00)
         sessionend = datetime.time(20, 00, 00)
         dataname = "IBUS500-CFD-SMART"
+        what = 'MIDPOINT'
     elif index in ('IBUST100'):
         tz = 'UTC'
         sessionstart = None
@@ -372,6 +441,7 @@ def run():
         sessionstart = datetime.time(13, 30, 00)
         sessionend = datetime.time(20, 00, 00)
         dataname = "IBUST100-CFD-SMART"
+        what = 'MIDPOINT'
     elif index in ('IBAU200'):
         tz = 'UTC'
         sessionstart = None
@@ -379,29 +449,33 @@ def run():
         # sessionstart = datetime.time(13, 30, 00)
         sessionend = datetime.time(6, 00, 00)
         dataname = "IBAU200-CFD-SMART"
+        what = 'MIDPOINT'
     elif index in ('ES'):
         tz = 'UTC'
         sessionstart = None
         sessionend = None
         dataname = "ES-202009-GLOBEX"
+        what = None
     elif index in ('NQ'):
         tz = 'UTC'
         sessionstart = None
         sessionend = None
         dataname = "NQ-202009-GLOBEX"
+        what = None
     elif index in ('DOW'):
         tz = 'UTC'
         sessionstart = None
         sessionend = None
         dataname = "YM-202009-ECBOT"
+        what = None
     elif index in 'NIFTY':
         tz = None
         sessionstart = datetime.time(9, 30, 00)
         sessionend = datetime.time(16, 00, 00)
         data = bt.feeds.YahooFinanceData(dataname='^NSEI', fromdate=datetime.datetime(2019, 1, 1),
                                          todate=datetime.datetime.today())
+        what = None
         cerebro.adddata(data)
-
     stockkwargs = dict(
         timeframe=bt.TimeFrame.Minutes,
         tz=tz,
@@ -417,35 +491,17 @@ def run():
         useRTH=True,
         sessionstart=sessionstart,
         sessionend=sessionend,
+        what=what
         # compression=1
     )
-
     if index not in ('NIFTY'):
         store = bt.stores.IBStore(port=7497, clientId=1001)
         cerebro.broker = store.getbroker()
         data = store.getdata(dataname=dataname, **stockkwargs)
         data.addfilter(bt.filters.MySessionFilter)
-        cerebro.resampledata(data, timeframe=bt.TimeFrame.Minutes, compression=60)
+        cerebro.resampledata(data, timeframe=bt.TimeFrame.Days, compression=1)
         # cerebro.adddata(data)
-    cerebro.addstrategy(St)
 
-    # # Set our desired cash start
-    # cerebro.broker.setcash(100000.0)
-    #
-    # # Add a FixedSize sizer according to the stake
-    # cerebro.addsizer(bt.sizers.FixedSize, stake=1)
-    #
-    # # Set the commission
-    # # # 0.1% ... divide by 100 to remove the %
-    # cerebro.broker.setcommission(commission=0.001)
-    #
-    # # Print out the starting conditions
-    # print('Starting Portfolio Value: %.2f' % cerebro.broker.getvalue())
-
-    cerebro.run()
-
-    # # Print out the final result
-    # print('Final Portfolio Value: %.2f' % cerebro.broker.getvalue())
 
 if __name__ == "__main__":
     run()
