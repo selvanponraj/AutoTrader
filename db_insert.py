@@ -26,6 +26,8 @@ Base.prepare(engine, reflect=True)
 #     print (r)
 
 Subscription = Base.classes.subscription_v
+
+
 def clone_model(model, **kwargs):
     """Clone an arbitrary sqlalchemy model object without its primary key values."""
     # Ensure the model’s data is loaded before copying.
@@ -54,6 +56,7 @@ def test_sqlalchemy_orm_pk_given(start=0, end=2):
     print(
         "SQLAlchemy ORM pk given: Total time for " + str(end) +
         " records " + str(time.time() - t0) + " secs")
+
 
 subscription_obj = session.query(Subscription).first()
 test_sqlalchemy_orm_pk_given(200,20000)
