@@ -33,7 +33,6 @@ ssud_msidns = [
 faker = Faker()
 
 # engine = create_engine('postgresql+psycopg2://alpha:alpha@localhost/alpha')
-engine = create_engine('postgresql+psycopg2://aom:aomdev@localhost:50030/pega')
 
 session = Session(engine)
 print(session)
