@@ -1,59 +1,78 @@
-from faker import Faker
-
+from sqlalchemy import MetaData
+from sqlalchemy.orm import sessionmaker
+from setup_psql_environment import get_database
+from sqlalchemy.ext.declarative import declarative_base
+import models
 import time
-from sqlalchemy import create_engine
-from sqlalchemy import Table
+import random
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
 from sqlalchemy import MetaData, Column, Integer, String
-from random import randint
+from sqlalchemy import create_engine
 
+# Setup environment and create a session
 
-paym_msidns = [
+paym_msidns = list(map(str, [
     447810067578,
-    # 447810081030,
-    # 447876032230,
-    # 447810068040,
-    # 447810068111,
-    # 447810083444,
-    # 447810082754
-    ]
-mbb_msidns = [
+    447810081030,
+    447876032230,
+    447810068040,
+    447810068111,
+    447810083444,
+    447810082754
+]))
+mbb_msidns = list(map(str, [
     447340011880,
     447810068835
-]
-ssud_msidns = [
+]))
+ssud_msidns = list(map(str, [
     447810068195,
     447810068123,
     447810067473,
     447810081030,
     447810010777
-]
+]))
 
-faker = Faker()
-
-# engine = create_engine('postgresql+psycopg2://alpha:alpha@localhost/alpha')
-
-session = Session(engine)
-print(session)
-metadata = MetaData(engine)
-Base = automap_base()
-# # Table - Uncomment below two lines.
-# Base.prepare(engine, reflect=True)
-
-# table = Table({Table Name}, {metadata}, autoload=True, autoload_with={engine}, schema={Schema name})
+# db = get_database()
+db = create_engine('postgresql+psycopg2://alpha:alpha@localhost/alpha')
+Session = sessionmaker(bind=db)
 
 
+def delete(schema=None, type=None):
 
+    meta = MetaData(schema=schema)
+    Base = automap_base(bind=db, metadata=meta)
+    Base.prepare(db, reflect=True)
 
-# subscription = Table('subscription',Base.metadata, Column('subscription_id', String,
-# primary_key=True), autoload=True, autoload_with=engine)
-# Base.prepare(engine, reflect=True)
-# Subscription = Base.classes.subscription
+    session = Session()
 
-# v = Table('subscription_v', metadata, autoload=True)
-# for r in engine.execute(subscription_v.select()):
-#     print (r)
+    Subscription = Base.classes.subscription
+    Contact = Base.classes.contact
+    ModelScore = Base.classes.model_score
+    SubFlexAttribute = Base.classes.subs_flex_attribute
+    Account = Base.classes.account
+
+    if type == "PAYMS":
+        msidns = paym_msidns
+    if type == "MBB":
+        msidns = mbb_msidns
+    elif type == "SSUD":
+        msidns = ssud_msidns
+    else:
+        msidns = paym_msidns + mbb_msidns + ssud_msidns
+
+    session.query(Subscription).filter(Subscription.service_no.in_(msidns)).delete(synchronize_session='fetch')
+    session.query(SubFlexAttribute).filter(SubFlexAttribute.custom_char_003.in_(msidns)).delete(synchronize_session='fetch')
+    session.query(ModelScore).filter(ModelScore.service_no.in_(msidns)).delete(synchronize_session='fetch')
+    contact_ids=session.query(Contact.contact_id).filter(Contact.alternate_phone_no.in_(msidns)).all()
+    session.query(Account).filter(Account.contact_id.in_(contact_ids)).delete(synchronize_session='fetch')
+    session.query(Contact).filter(Contact.alternate_phone_no.in_(msidns)).delete(synchronize_session='fetch')
+    session.commit();
+
+def random_with_N_digits(n):
+    range_start = 10 ** (n - 1)
+    range_end = (10 ** n) - 1
+    return random.randint(range_start, range_end)
 
 
 def clone_model(model, **kwargs):
@@ -67,7 +86,8 @@ def clone_model(model, **kwargs):
     clone = model.__class__(**data)
     return clone
 
-''' 
+
+'''
     Documentation
     contact_id = 1-87-K5XXX  '  (X = last 3 digits of MSISDN)
     Subscription_id = 'TEST-100'(incremental)
@@ -80,22 +100,13 @@ def clone_model(model, **kwargs):
 
 def insert(schema=None, type=None):
     t0 = time.time()
-
-    subscription = Table('subscription', Base.metadata, Column('subscription_id', String,primary_key=True), autoload=True, autoload_with=engine,
-                         schema=schema,extend_existing=True)
-
-    contact = Table('contact', Base.metadata, Column('contact_id', String,primary_key=True), autoload=True, autoload_with=engine,
-                    schema=schema,extend_existing=True)
-
-    model_score = Table('model_score', Base.metadata, autoload=True, autoload_with=engine, schema=schema,extend_existing=True)
-
-    subs_flex_attribute = Table('subs_flex_attribute', Base.metadata, Column('subscription_id', String,primary_key=True), autoload=True,
-                             autoload_with=engine, schema=schema,extend_existing=True)
-
-    account = Table('account', Base.metadata, Column('account_no', String,primary_key=True), autoload=True, autoload_with=engine,
-                    schema=schema,extend_existing=True)
-
-    Base.prepare(engine, reflect=True)
+    session = Session()
+    print(session)
+    meta = MetaData(schema=schema)
+    Base = automap_base(bind=db, metadata=meta)
+    Base.prepare(db, reflect=True)
+    print(Base.classes.keys())
+    print(Base.metadata.tables)
 
     Subscription = Base.classes.subscription
     Contact = Base.classes.contact
@@ -106,14 +117,14 @@ def insert(schema=None, type=None):
     sample_subscription = session.query(Subscription).filter(Subscription.service_no == '4475912234894')[0]
     print("subscription_id:", sample_subscription.service_no, sample_subscription.subscription_id)
 
+    sample_sfa = session.query(SubFlexAttribute).filter(SubFlexAttribute.subscription_id == '1-DE4894HJD')[0]
+    print("sample_sfa:", sample_sfa.custom_char_003)
+
     sample_contact = session.query(Contact).filter(Contact.contact_id == '1-87-K5484')[0]
     print("contact_id:", sample_contact.contact_birth_dt)
 
     sample_account = session.query(Account).filter(Account.account_no == '1900475484')[0]
     print("account_no:", sample_account.contact_id)
-
-    sample_sfa = session.query(SubFlexAttribute).filter(SubFlexAttribute.subscription_id == '1-DE4894HJD')[0]
-    print("sample_sfa:", sample_sfa.custom_char_003)
 
     sample_ms = session.query(ModelScore).filter(ModelScore.service_no == '4475912234894')[0]
     print("model_id:", sample_ms.model_id, "model_name:", sample_ms.model_name)
@@ -123,15 +134,15 @@ def insert(schema=None, type=None):
     sms_mktg_consent_flg = 'N'
 
     if type == "PAYMS":
-        msidns=paym_msidns
+        msidns = paym_msidns
         subs_type = 'Mobile Service'
         root_service_product_cd = '100000'
         sms_mktg_consent_flg = 'N'
-    if type=="MBB":
+    if type == "MBB":
         msidns = mbb_msidns
-        subs_type='Mobile Broadband Service'
+        subs_type = 'Mobile Broadband Service'
         root_service_product_cd = '100092'
-    elif type=="SSUD":
+    elif type == "SSUD":
         msidns = ssud_msidns
         sms_mktg_consent_flg = 'Y'
 
@@ -142,35 +153,33 @@ def insert(schema=None, type=None):
         # contact_id = "1-87-K5" + str(msidn)[len(str(msidn)) - 3:]
         contact_id = "1-87-K" + str(random_with_N_digits(4))
 
-
         subscription = clone_model(sample_subscription,
                                    subscription_id=subscription_id,
                                    service_no=str(msidn),
                                    subs_type=subs_type,
                                    # email_address=faker.email(),
                                    sms_mktg_consent_flg=sms_mktg_consent_flg,
-                                   root_service_product_cd = root_service_product_cd,
+                                   root_service_product_cd=root_service_product_cd,
                                    owner_acct_no=acct_no,
                                    billing_acct_no=acct_no,
                                    service_acct_no=acct_no)
         model_score = clone_model(sample_ms,
                                   model_id=random_with_N_digits(4),
-                                   service_no=str(msidn)
+                                  service_no=str(msidn)
                                   )
         contact = clone_model(sample_contact,
-                                   contact_id=contact_id,
-                                   alternate_phone_no=str(msidn)
+                              contact_id=contact_id,
+                              alternate_phone_no=str(msidn)
                               )
         account = clone_model(sample_account,
-
-                                   account_no=acct_no,
-                                   contact_id= contact_id
-                                   )
+                              account_no=acct_no,
+                              contact_id=contact_id
+                              )
 
         sample_sfa = clone_model(sample_sfa,
-                              subscription_id=subscription_id,
-                              custom_char_003=str(msidn)
-                              )
+                                 subscription_id=subscription_id,
+                                 custom_char_003=str(msidn)
+                                 )
 
         session.add(subscription)
         session.add(model_score)
@@ -181,31 +190,30 @@ def insert(schema=None, type=None):
         if len(msidns) % 1000 == 0:
             session.flush()
         session.commit()
+        # session.close()
         print(
             "Total time for " + str(len(msidns)) +
             " records " + str(time.time() - t0) + " secs")
 
 
-def random_with_N_digits(n):
-    range_start = 10**(n-1)
-    range_end = (10**n)-1
-    return randint(range_start, range_end)
-
-
 def main():
     print("Test Data Preparation  - Starting")
+
     # # ALPHADATA
     # insert(schema="alphadata", type="PAYMS")
     # insert(schema="alphadata", type="MBB")
     # insert(schema="alphadata", type="SSUD")
 
-    # BETADATA
-    insert(schema="betadata",type="PAYMS")
-    insert(schema="betadata", type="MBB")
-    insert(schema="betadata", type="SSUD")
+    #
+    # # BETADATA
+    # insert(schema="betadata",type="PAYMS")
+    # insert(schema="betadata", type="MBB")
+    # insert(schema="betadata", type="SSUD")
 
-    print(" ****************************** End of Test Data Preparation  ********************")
+    delete(schema="betadata",type="PAYMS")
+
+    # print(" ****************************** End of Test Data Preparation  ********************")
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
